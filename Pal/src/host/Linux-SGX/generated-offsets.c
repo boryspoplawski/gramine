@@ -161,7 +161,7 @@ const struct generated_offset generated_offsets[] = {
     /* pal_linux.h */
     DEFINE(PAGESIZE, PRESET_PAGESIZE),
 
-    /* pal.h */
+    /* pal_api_types.h */
     DEFINE(PAL_EVENT_NO_EVENT, PAL_EVENT_NO_EVENT),
     DEFINE(PAL_EVENT_NUM_BOUND, PAL_EVENT_NUM_BOUND),
 

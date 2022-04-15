@@ -40,8 +40,8 @@ sometimes the OS features needed involve low-level operations inside the host OS
 and cannot be emulated inside the library OS. Therefore, you may have to add
 a |~| few new PAL calls to the existing interface.
 
-To add a |~| new PAL call, first modify :file:`Pal/include/pal/pal.h`. Define
-the PAL call::
+To add a |~| new PAL call, first modify :file:`Pal/include/pal/pal_api.h`.
+Define the PAL call::
 
    bool DkThreadSetCPUAffinity(PAL_NUM cpu_num, PAL_IDX* cpu_indexes);
 

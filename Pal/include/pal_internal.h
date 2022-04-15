@@ -47,7 +47,7 @@ struct handle_ops {
 
     /* 'open' is used by DkStreamOpen. 'handle' is a preallocated handle, 'type' will be a
      * normalized prefix, 'uri' is the remaining string of uri. access, share, create, and options
-     * follow the same flags defined for DkStreamOpen in pal.h. */
+     * follow the same flags defined for DkStreamOpen in pal_api_types.h. */
     int (*open)(PAL_HANDLE* handle, const char* type, const char* uri, enum pal_access access,
                 pal_share_flags_t share, enum pal_create_mode create, pal_stream_options_t options);
 
