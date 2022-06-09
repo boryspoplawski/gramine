@@ -406,8 +406,6 @@ int dentry_open(struct shim_handle* hdl, struct shim_dentry* dent, int flags) {
 
     if (dent->inode->type == S_IFDIR) {
         /* Initialize directory handle */
-        hdl->is_dir = true;
-
         hdl->dir_info.dents = NULL;
     }
 
@@ -727,7 +725,7 @@ int get_dirfd_dentry(int dirfd, struct shim_dentry** dir) {
         return -EBADF;
     }
 
-    if (!hdl->is_dir) {
+    if (!hdl->dentry || !hdl->dentry->inode || hdl->dentry->inode->type != S_IFDIR) {
         put_handle(hdl);
         return -ENOTDIR;
     }

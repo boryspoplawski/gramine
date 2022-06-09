@@ -26,6 +26,7 @@
 #include "shim_pollable_event.h"
 #include "shim_sync.h"
 #include "shim_types.h"
+#include "stat.h"
 
 /* Handle types. Many of these are used by a single filesystem. */
 enum shim_handle_type {
@@ -168,7 +169,6 @@ struct shim_dentry;
 
 struct shim_handle {
     enum shim_handle_type type;
-    bool is_dir;
 
     REFTYPE ref_count;
 

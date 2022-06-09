@@ -491,7 +491,7 @@ void put_handle(struct shim_handle* hdl) {
         assert(hdl->epoll_items_count == 0);
         assert(LISTP_EMPTY(&hdl->epoll_items));
 
-        if (hdl->is_dir) {
+        if (hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR) {
             clear_directory_handle(hdl);
         }
 
@@ -725,7 +725,7 @@ BEGIN_CP_FUNC(handle) {
         if (hdl->uri)
             DO_CP_MEMBER(str, hdl, new_hdl, uri);
 
-        if (hdl->is_dir) {
+        if (hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR) {
             /*
              * We don't checkpoint children dentries of a directory dentry, so the child process
              * will need to list the directory again. However, we keep `dir_info.pos` unchanged

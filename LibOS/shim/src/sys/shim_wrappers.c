@@ -33,7 +33,7 @@ long shim_do_readv(unsigned long fd, const struct iovec* vec, unsigned long vlen
 
     int ret = 0;
 
-    if (hdl->is_dir) {
+    if (hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR) {
         ret = -EISDIR;
         goto out;
     }
@@ -103,7 +103,7 @@ long shim_do_writev(unsigned long fd, const struct iovec* vec, unsigned long vle
 
     int ret = 0;
 
-    if (hdl->is_dir) {
+    if (hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR) {
         ret = -EISDIR;
         goto out;
     }

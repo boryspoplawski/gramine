@@ -31,7 +31,7 @@ ssize_t do_handle_read(struct shim_handle* hdl, void* buf, size_t count) {
     if (!fs->fs_ops->read)
         return -EBADF;
 
-    if (hdl->is_dir)
+    if (hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR)
         return -EISDIR;
 
     lock(&hdl->pos_lock);
@@ -72,7 +72,7 @@ ssize_t do_handle_write(struct shim_handle* hdl, const void* buf, size_t count) 
     if (!fs->fs_ops->write)
         return -EBADF;
 
-    if (hdl->is_dir)
+    if (hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR)
         return -EISDIR;
 
     lock(&hdl->pos_lock);
@@ -169,7 +169,7 @@ long shim_do_close(int fd) {
 
 /* See also `do_getdents`. */
 static file_off_t do_lseek_dir(struct shim_handle* hdl, off_t offset, int origin) {
-    assert(hdl->is_dir);
+    assert(hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR);
 
     lock(&g_dcache_lock);
     lock(&hdl->pos_lock);
@@ -208,7 +208,7 @@ long shim_do_lseek(int fd, off_t offset, int origin) {
         return -EBADF;
 
     off_t ret = 0;
-    if (hdl->is_dir) {
+    if (hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR) {
         ret = do_lseek_dir(hdl, offset, origin);
         goto out;
     }
@@ -257,7 +257,7 @@ long shim_do_pread64(int fd, char* buf, size_t count, loff_t offset) {
     if (!fs->fs_ops->read)
         goto out;
 
-    if (hdl->is_dir) {
+    if (hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR) {
         ret = -EISDIR;
         goto out;
     }
@@ -299,7 +299,7 @@ long shim_do_pwrite64(int fd, char* buf, size_t count, loff_t offset) {
     if (!fs->fs_ops->write)
         goto out;
 
-    if (hdl->is_dir) {
+    if (hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR) {
         ret = -EISDIR;
         goto out;
     }
@@ -342,13 +342,8 @@ static ssize_t do_getdents(int fd, uint8_t* buf, size_t buf_size, bool is_getden
 
     ssize_t ret;
 
-    if (!hdl->is_dir) {
+    if (!hdl->dentry || !hdl->dentry->inode || hdl->dentry->inode->type != S_IFDIR) {
         ret = -ENOTDIR;
-        goto out_no_unlock;
-    }
-
-    if (!hdl->dentry->inode) {
-        ret = -ENOENT;
         goto out_no_unlock;
     }
 
@@ -471,7 +466,7 @@ long shim_do_fsync(int fd) {
         goto out;
     }
 
-    if (hdl->is_dir) {
+    if (hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR) {
         /* FS subsystem doesn't do anything meaningful with dirs, so flushing a dir is a no-op */
         ret = 0;
         goto out;
@@ -546,7 +541,12 @@ long shim_do_ftruncate(int fd, loff_t length) {
         goto out;
     }
 
-    if (hdl->is_dir || !fs->fs_ops->truncate) {
+    if (!fs->fs_ops->truncate) {
+        ret = -EINVAL;
+        goto out;
+    }
+
+    if (hdl->dentry && hdl->dentry->inode && hdl->dentry->inode->type == S_IFDIR) {
         ret = -EINVAL;
         goto out;
     }
