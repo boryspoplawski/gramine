@@ -2261,3 +2261,126 @@ out:
     sgx_reset_ustack(old_ustack);
     return retval;
 }
+
+int ocall_edmm_restrict_pages_perm(uint64_t addr, size_t count, uint64_t prot) {
+    int ret;
+    void* old_ustack = sgx_prepare_ustack();
+
+    struct ocall_edmm_restrict_pages_perm* ocall_args;
+    ocall_args = sgx_alloc_on_ustack_aligned(sizeof(*ocall_args), alignof(*ocall_args));
+    if (!ocall_args) {
+        ret = -EPERM;
+        goto out;
+    }
+
+    WRITE_ONCE(ocall_args->addr, addr);
+    WRITE_ONCE(ocall_args->count, count);
+    WRITE_ONCE(ocall_args->prot, prot);
+
+    ret = sgx_exitless_ocall(OCALL_EDMM_RESTRICT_PAGES_PERM, ocall_args);
+    if (ret < 0) {
+        if (ret != -EINVAL && ret != -EPERM && ret != -EFAULT) {
+            ret = -EPERM;
+        }
+        goto out;
+    }
+
+    ret = 0;
+
+out:
+    sgx_reset_ustack(old_ustack);
+    return ret;
+}
+
+int ocall_edmm_modify_pages_type(uint64_t addr, size_t count, uint64_t type,
+                                 uint64_t* bitmap_missing_pages) {
+    int ret;
+    void* old_ustack = sgx_prepare_ustack();
+
+    struct ocall_edmm_modify_pages_type* ocall_args;
+    ocall_args = sgx_alloc_on_ustack_aligned(sizeof(*ocall_args), alignof(*ocall_args));
+    if (!ocall_args) {
+        ret = -EPERM;
+        goto out;
+    }
+
+    uint64_t* uptr = NULL;
+    size_t bitmap_missing_pages_size = UDIV_ROUND_UP(count, 64) * sizeof(*bitmap_missing_pages);
+    if (bitmap_missing_pages) {
+        uptr = sgx_alloc_on_ustack_aligned(bitmap_missing_pages_size, alignof(*uptr));
+        if (!uptr) {
+            ret = -EPERM;
+            goto out;
+        }
+    }
+
+    WRITE_ONCE(ocall_args->addr, addr);
+    WRITE_ONCE(ocall_args->count, count);
+    WRITE_ONCE(ocall_args->type, type);
+    WRITE_ONCE(ocall_args->bitmap_missing_pages, uptr);
+
+    ret = sgx_exitless_ocall(OCALL_EDMM_MODIFY_PAGES_TYPE, ocall_args);
+    if (ret < 0) {
+        if (ret != -EINVAL && ret != -EPERM && ret != -EFAULT) {
+            ret = -EPERM;
+        }
+        goto out;
+    }
+
+    if (bitmap_missing_pages) {
+        if (!sgx_copy_to_enclave(bitmap_missing_pages, bitmap_missing_pages_size,
+                                 uptr, bitmap_missing_pages_size)) {
+            ret = -EPERM;
+            goto out;
+        }
+    }
+
+    ret = 0;
+
+out:
+    sgx_reset_ustack(old_ustack);
+    return ret;
+}
+
+int ocall_edmm_remove_pages(uint64_t addr, size_t count, uint64_t* bitmap_missing_pages) {
+    int ret;
+    void* old_ustack = sgx_prepare_ustack();
+
+    struct ocall_edmm_remove_pages* ocall_args;
+    ocall_args = sgx_alloc_on_ustack_aligned(sizeof(*ocall_args), alignof(*ocall_args));
+    if (!ocall_args) {
+        ret = -EPERM;
+        goto out;
+    }
+
+    size_t bitmap_missing_pages_size = UDIV_ROUND_UP(count, 64) * sizeof(*bitmap_missing_pages);
+    uint64_t* uptr = sgx_alloc_on_ustack_aligned(bitmap_missing_pages_size, alignof(*uptr));
+    if (!uptr) {
+        ret = -EPERM;
+        goto out;
+    }
+
+    if (!sgx_copy_from_enclave(uptr, bitmap_missing_pages, bitmap_missing_pages_size)) {
+        ret = -EPERM;
+        goto out;
+    }
+
+
+    WRITE_ONCE(ocall_args->addr, addr);
+    WRITE_ONCE(ocall_args->count, count);
+    WRITE_ONCE(ocall_args->bitmap_missing_pages, uptr);
+
+    ret = sgx_exitless_ocall(OCALL_EDMM_REMOVE_PAGES, ocall_args);
+    if (ret < 0) {
+        if (ret != -EINVAL && ret != -EPERM && ret != -EFAULT) {
+            ret = -EPERM;
+        }
+        goto out;
+    }
+
+    ret = 0;
+
+out:
+    sgx_reset_ustack(old_ustack);
+    return ret;
+}

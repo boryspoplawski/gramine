@@ -125,3 +125,8 @@ int ocall_eventfd(int flags);
  */
 int ocall_get_quote(const sgx_spid_t* spid, bool linkable, const sgx_report_t* report,
                     const sgx_quote_nonce_t* nonce, char** quote, size_t* quote_len);
+
+int ocall_edmm_restrict_pages_perm(uint64_t addr, size_t count, uint64_t prot);
+int ocall_edmm_modify_pages_type(uint64_t addr, size_t count, uint64_t type,
+                                 uint64_t* bitmap_missing_pages);
+int ocall_edmm_remove_pages(uint64_t addr, size_t count, uint64_t* bitmap_missing_pages);
