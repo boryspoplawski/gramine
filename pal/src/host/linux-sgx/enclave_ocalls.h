@@ -130,3 +130,4 @@ int ocall_edmm_restrict_pages_perm(uint64_t addr, size_t count, uint64_t prot);
 int ocall_edmm_modify_pages_type(uint64_t addr, size_t count, uint64_t type,
                                  uint64_t* bitmap_missing_pages);
 int ocall_edmm_remove_pages(uint64_t addr, size_t count, uint64_t* bitmap_missing_pages);
+int ocall_edmm_fault_pages(uint64_t addr, size_t count);

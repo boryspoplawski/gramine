@@ -110,6 +110,9 @@ int edmm_restrict_pages_perms(uint64_t addr, size_t count, uint64_t prot);
 int edmm_modify_pages_type(uint64_t addr, size_t count, uint64_t type,
                            uint64_t* bitmap_missing_pages);
 int edmm_remove_pages(uint64_t addr, size_t count, uint64_t* bitmap_missing_pages);
+void edmm_fault_enclave_pages(uint64_t addr, size_t count);
+int edmm_fault_enclave_page(uint64_t addr);
+void edmm_fault_enclave_page_ret(void);
 
 /*!
  * \brief Retrieve Quoting Enclave's sgx_target_info_t by talking to AESMD.

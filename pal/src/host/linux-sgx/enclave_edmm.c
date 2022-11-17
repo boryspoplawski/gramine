@@ -40,10 +40,13 @@ static void sgx_emodpe(uint64_t addr, uint64_t prot) {
 
 int sgx_edmm_add_pages(uint64_t addr, size_t count, uint64_t prot) {
     int ret;
-    //int ret = ocall_fault_pages(addr, count);
-    //if (ret < 0) {
-    //    return unix_to_pal_error(ret);
-    //}
+    if (count > 1) {
+        /* Fault the pages from untrusted userspace. For more details, see "edmm_tricks.nasm". */
+        ret = ocall_edmm_fault_pages(addr, count);
+        if (ret < 0) {
+            return unix_to_pal_error(ret);
+        }
+    }
 
     if (prot & SGX_SECINFO_FLAGS_W) {
         /* HW limitation. */

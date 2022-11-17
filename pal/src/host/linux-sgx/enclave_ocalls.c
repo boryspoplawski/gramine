@@ -2384,3 +2384,30 @@ out:
     sgx_reset_ustack(old_ustack);
     return ret;
 }
+
+int ocall_edmm_fault_pages(uint64_t addr, size_t count) {
+    int ret;
+    void* old_ustack = sgx_prepare_ustack();
+
+    struct ocall_edmm_fault_pages* ocall_args;
+    ocall_args = sgx_alloc_on_ustack_aligned(sizeof(*ocall_args), alignof(*ocall_args));
+    if (!ocall_args) {
+        ret = -EPERM;
+        goto out;
+    }
+
+    WRITE_ONCE(ocall_args->addr, addr);
+    WRITE_ONCE(ocall_args->count, count);
+
+    ret = sgx_exitless_ocall(OCALL_EDMM_FAULT_PAGES, ocall_args);
+    if (ret < 0) {
+        ret = -EPERM;
+        goto out;
+    }
+
+    ret = 0;
+
+out:
+    sgx_reset_ustack(old_ustack);
+    return ret;
+}

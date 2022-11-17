@@ -98,6 +98,13 @@ static bool interrupted_in_aex_profiling(void) {
 }
 
 static void handle_sync_signal(int signum, siginfo_t* info, struct ucontext* uc) {
+    uint64_t rip = ucontext_get_ip(uc);
+    if ((signum == SIGSEGV || signum == SIGBUS) && rip == (uint64_t)&edmm_fault_enclave_page) {
+        /* Ignore this exception. See "edmm_tricks.nasm" for more details. */
+        ucontext_set_ip(uc, (uint64_t)&edmm_fault_enclave_page_ret);
+        return;
+    }
+
     enum pal_event event = signal_to_pal_event(signum);
 
     __UNUSED(info);
@@ -116,7 +123,6 @@ static void handle_sync_signal(int signum, siginfo_t* info, struct ucontext* uc)
 
     /* exception happened in untrusted PAL code (during syscall handling): fatal in Gramine */
 
-    unsigned long rip = ucontext_get_ip(uc);
     char buf[LOCATION_BUF_SIZE];
     pal_describe_location(rip, buf, sizeof(buf));
 

@@ -72,6 +72,7 @@ enum {
     OCALL_EDMM_RESTRICT_PAGES_PERM,
     OCALL_EDMM_MODIFY_PAGES_TYPE,
     OCALL_EDMM_REMOVE_PAGES,
+    OCALL_EDMM_FAULT_PAGES,
     OCALL_NR,
 };
 
@@ -355,6 +356,11 @@ struct ocall_edmm_remove_pages {
     uint64_t addr;
     size_t count;
     uint64_t* bitmap_missing_pages;
+};
+
+struct ocall_edmm_fault_pages {
+    uint64_t addr;
+    size_t count;
 };
 
 #pragma pack(pop)

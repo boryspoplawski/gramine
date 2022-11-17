@@ -450,6 +450,16 @@ int edmm_remove_pages(uint64_t addr, size_t count, uint64_t* bitmap_missing_page
     return 0;
 }
 
+void edmm_fault_enclave_pages(uint64_t addr, size_t count) {
+    for (size_t i = 0; i < count; ++i) {
+        int x = edmm_fault_enclave_page(addr + i * PAGE_SIZE);
+        if (x) {
+            log_always("WTFFFFFFFFFFFFFFF %d", x);
+            DO_SYSCALL(exit_group, 1);
+        }
+    }
+}
+
 int init_enclave(sgx_arch_secs_t* secs, sgx_arch_enclave_css_t* sigstruct,
                  sgx_arch_token_t* token) {
 #ifdef SGX_DCAP
